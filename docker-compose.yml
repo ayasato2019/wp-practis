@@ -20,3 +20,7 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - ./db/sqls:/docker-entrypoint-initdb.d
+
+  volumes:
+    db:
+    wordpress:
