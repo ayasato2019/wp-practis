@@ -1,49 +1,26 @@
 version: "3"
 services:
-  app:
-    build:
-      context: "docker/app/"
-    ports:
-      - 80:80
-    working_dir: /var/www
+  db:
+    image: mariadb:10.4
+    container_name: wordpress-db
     volumes:
-      - "./www/:/var/www"
-      - "./docker/app/apache2/apache2.conf:/etc/apache2/apache2.conf"
-      - "./docker/app/apache2/sites-available/000-default.conf:/etc/apache2/sites-available/000-default.conf"
-      - "./docker/msmtp/msmtprc:/etc/msmtprc"
-    depends_on:
-      - mysql
-      - mailhog
-    env_file: 
-      - .env
-  mysql:
-    build:
-      context: "docker/mysql/"
-    command: --default-authentication-plugin=mysql_native_password
+      - "./db-data:/var/lib/mysql"
     environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_HOST=${MYSQL_HOST}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - TZ=Asia/Tokyo
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "wordpress"
+      MYSQL_USER: "wordpress"
+      MYSQL_PASSWORD: "wordpress"
+      TZ: "Asia/Tokyo"
+
+  wordpress:
+    image: wordpress:latest
+    container_name: "wordpress-wp"
     volumes:
-      - "./docker/mysql/storage/:/var/lib/mysql"
-      - "./docker/mysql/initdb/:/docker-entrypoint-initdb.d"
+      - "./wordpress/:/var/www/html"
     ports:
-      - "3306:3306"
-  phpmyadmin:
-    image: phpmyadmin:latest
-    ports:
-      - 8080:80
+      - "8000:80"
     environment:
-      - PMA_HOST=${MYSQL_HOST}
-      - PMA_USER=${MYSQL_USER}
-      - PMA_PASSWORD=${MYSQL_PASSWORD}
-    depends_on:
-      - mysql
-  mailhog:
-    image: mailhog/mailhog:latest
-    ports:
-      - "8025:8025"
-      - "1025:1025"
+      WORDPRESS_DB_HOST: "db:3306"
+      WORDPRESS_DB_USER: "wordpress"
+      WORDPRESS_DB_PASSWORD: "wordpress"
+      WORDPRESS_DB_NAME: "wordpress"
